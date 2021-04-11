@@ -168,14 +168,12 @@ class DetailViewController: UIViewController {
     }
     
     private func setupActions() {
-        print(#function)
         playButton.isUserInteractionEnabled = true
         playButton.addTarget(self, action: #selector(startVideo), for: .touchUpInside)
     }
     
     @objc
     private func startVideo() {
-        print("start video")
         let playerVC = AVPlayerViewController()
         playerVC.player = player
         self.present(playerVC, animated: true) {
@@ -195,23 +193,25 @@ extension DetailViewController {
         networkService.getOriginalSizeContent(byURL: url) { [weak self] (result) in
             switch result {
             case .success(let contentLink):
+                
                 switch self?.nasaObject.contentType {
                 case .image:
                     self?.imageView.loadImage(atUrl: contentLink.photoLink)
                 case .video:
                     self?.imageView.loadImage(atUrl: contentLink.photoLink)
-                    guard let url = URL(string: contentLink.videoLink ?? "") else {
+                    guard let url = NetworkManager.convertToURL(strURL: contentLink.videoLink ?? "") else {
                         let alert = UIAlertController(title: "Error", message: "Cant play video", preferredStyle: .alert)
                         let returnAction = UIAlertAction(title: "Return back", style: .cancel) { (_) in
-                            self?.dismiss(animated: true, completion: nil)
+                            self?.navigationController?.popViewController(animated: true)
                         }
                         let okAction = UIAlertAction(title: "OK", style: .default)
                         alert.addAction(returnAction)
                         alert.addAction(okAction)
                         self?.present(alert, animated: true)
-                        return }
+                        return
+                    }
                     self?.player = AVPlayer(url: url)
-                case .none:
+                default:
                     break
                 }
             case .failure(let error):

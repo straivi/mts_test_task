@@ -82,12 +82,11 @@ class NetworkService {
     // MARK: Popolar object list
     func getPopolarList(complition: @escaping(Result<[NasaObject], Error>) -> Void) {
         let path = "https://images-assets.nasa.gov/popular.json"
-        let url = URL(string: path)
-        guard let urlUnwrap = url else {
+        guard let url = NetworkManager.convertToURL(strURL: path) else {
             complition(.failure(NetworkError.errorURL))
             return
         }
-        var request = URLRequest(url: urlUnwrap)
+        var request = URLRequest(url: url)
         request.timeoutInterval = 5
         networkManager.dataTask(request: request) { (data, error) in
             if let error = error {
@@ -118,8 +117,10 @@ class NetworkService {
     
     // MARK: Original contetn size
     func getOriginalSizeContent(byURL path: String, complition: @escaping(Result<ContentLink, Error>) -> Void) {
-        guard let url = URL(string: path) else {
-            complition(.failure(NetworkError.errorURL))
+        guard let url = NetworkManager.convertToURL(strURL: path) else {
+            DispatchQueue.main.async {
+                complition(.failure(NetworkError.errorURL))
+            }
             return
         }
         var request = URLRequest(url: url)
@@ -185,7 +186,7 @@ class NetworkService {
     func getSearchResult(searchTerm: String, page: Int, complition: @escaping(Result<[NasaObject], Error>) -> Void) {
         
         let params = prepareParamsForSearch(term: searchTerm, page: page)
-        guard let url = createURL(with: params) else {
+        guard let url = createSearchURL(with: params) else {
             complition(.failure(NetworkError.errorURL))
             return
         }
@@ -218,7 +219,8 @@ class NetworkService {
         }
     }
     
-    private func createURL(with params: [String: String]) -> URL? {
+    // MARK: Supporting methods
+    private func createSearchURL(with params: [String: String]) -> URL? {
         var components = URLComponents()
         components.scheme = "https"
         components.host = "images-api.nasa.gov"

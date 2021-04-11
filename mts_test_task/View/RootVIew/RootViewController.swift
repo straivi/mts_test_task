@@ -216,6 +216,8 @@ extension RootViewController {
             case .success(let list):
                 if list.isEmpty && page == 1 {
                     self?.showNoDataLabel(true)
+                } else {
+                    self?.showNoDataLabel(false)
                 }
                 self?.items = list
                 self?.tableView.reloadData()

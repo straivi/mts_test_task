@@ -9,6 +9,12 @@ import Foundation
 
 class NetworkManager {
     
+    static func convertToURL(strURL: String) -> URL? {
+        let escapedStr = strURL.replacingOccurrences(of: " ", with: "%20")
+        let url = URL(string: escapedStr)
+        return url
+    }
+    
     func dataTask(request: URLRequest, complition: @escaping(Data?, Error?) -> Void) {
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             complition(data, error)

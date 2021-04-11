@@ -13,7 +13,7 @@ class ImageLoader {
     private var runningRequests = [UUID: URLSessionDataTask]()
     
     func loadImage(url: String, complition: @escaping(Result<UIImage, Error>) -> Void) -> UUID? {
-        guard let url = URL(string: url) else {
+        guard let url = NetworkManager.convertToURL(strURL: url) else {
             complition(.failure(NetworkError.errorURL))
             return nil }
         
@@ -26,14 +26,14 @@ class ImageLoader {
         
         let task = URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
             defer {
-                if let self = self {
-                    self.runningRequests.removeValue(forKey: uuid)
+                DispatchQueue.main.async {
+                    self?.runningRequests.removeValue(forKey: uuid)
                 }
             }
             
             if let data = data,
                let image = UIImage(data: data) {
-                self?.loadedImages[url] = image
+                self?.loadedImages.updateValue(image, forKey: url)
                 complition(.success(image))
                 return
             }
@@ -48,8 +48,7 @@ class ImageLoader {
         DispatchQueue.global(qos: .default).async {
             task.resume()
         }
-        
-        runningRequests[uuid] = task
+        runningRequests.updateValue(task, forKey: uuid)
         return uuid
     }
     
